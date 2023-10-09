@@ -24,11 +24,18 @@ dependencies {
 	compileOnly 'org.projectlombok:lombok'
 	annotationProcessor 'org.projectlombok:lombok'
 
+	implementation group: 'com.mysql', name: 'mysql-connector-j', version: '8.0.33'
 	implementation "org.springframework:spring-webflux"
+
+	implementation group: 'com.google.guava', name: 'guava', version: '32.0.1-jre'
+	implementation group: 'org.apache.commons', name: 'commons-lang3', version: '3.12.0'
+	implementation group: 'org.springframework.boot', name: 'spring-boot-starter-validation', version: '3.1.2'
 
 	runtimeOnly 'com.mysql:mysql-connector-j'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testImplementation 'org.springframework.security:spring-security-test'
+	testImplementation "net.sourceforge.htmlunit:htmlunit"
+
 }
 
 tasks.named('test') {
