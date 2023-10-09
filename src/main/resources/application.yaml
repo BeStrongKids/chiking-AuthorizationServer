@@ -2,6 +2,18 @@ server:
   port: 9021
 
 spring:
+  datasource:
+    username: wgpark
+    password: 123
+    url: jdbc:mysql://localhost/chikingTest
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+  sql:
+    init:
+      mode: never
+      schema-locations: classpath:sql/*.sql
   security:
     oauth2:
       client:

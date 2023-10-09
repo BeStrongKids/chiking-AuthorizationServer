@@ -15,6 +15,7 @@
  */
 package com.bestrongkids.authorizationserver.config;
 
+import java.util.Optional;
 import java.util.UUID;
 
 import com.bestrongkids.authorizationserver.authentication.DeviceClientAuthenticationProvider;
@@ -72,29 +73,12 @@ public class AuthorizationServerConfig {
 
 		OAuth2AuthorizationServerConfiguration.applyDefaultSecurity(http);
 
-		/*
-		 * This sample demonstrates the use of a public client that does not
-		 * store credentials or authenticate with the authorization server.
-		 *
-		 * The following components show how to customize the authorization
-		 * server to allow for device clients to perform requests to the
-		 * OAuth 2.0 Device Authorization Endpoint and Token Endpoint without
-		 * a clientId/clientSecret.
-		 *
-		 * CAUTION: These endpoints will not require any authentication, and can
-		 * be accessed by any client that has a valid clientId.
-		 *
-		 * It is therefore RECOMMENDED to carefully monitor the use of these
-		 * endpoints and employ any additional protections as needed, which is
-		 * outside the scope of this sample.
-		 */
 		DeviceClientAuthenticationConverter deviceClientAuthenticationConverter =
 				new DeviceClientAuthenticationConverter(
 						authorizationServerSettings.getDeviceAuthorizationEndpoint());
 		DeviceClientAuthenticationProvider deviceClientAuthenticationProvider =
 				new DeviceClientAuthenticationProvider(registeredClientRepository);
 
-		// @formatter:off
 		http.getConfigurer(OAuth2AuthorizationServerConfigurer.class)
 			.deviceAuthorizationEndpoint(deviceAuthorizationEndpoint ->
 				deviceAuthorizationEndpoint.verificationUri("/activate")
@@ -110,9 +94,6 @@ public class AuthorizationServerConfig {
 			.authorizationEndpoint(authorizationEndpoint ->
 				authorizationEndpoint.consentPage(CUSTOM_CONSENT_PAGE_URI))
 			.oidc(Customizer.withDefaults());	// Enable OpenID Connect 1.0
-		// @formatter:on
-
-		// @formatter:off
 		http
 			.exceptionHandling((exceptions) -> exceptions
 				.defaultAuthenticationEntryPointFor(
@@ -122,44 +103,50 @@ public class AuthorizationServerConfig {
 			)
 			.oauth2ResourceServer(oauth2ResourceServer ->
 				oauth2ResourceServer.jwt(Customizer.withDefaults()));
-		// @formatter:on
 		return http.build();
 	}
 
-	// @formatter:off
 	@Bean
 	public RegisteredClientRepository registeredClientRepository(JdbcTemplate jdbcTemplate) {
-		RegisteredClient registeredClient = RegisteredClient.withId(UUID.randomUUID().toString())
-				.clientId("messaging-client")
-				.clientSecret("{noop}secret")
-				.clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
-				.authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
-				.authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
-				.authorizationGrantType(AuthorizationGrantType.CLIENT_CREDENTIALS)
-				.redirectUri("http://127.0.0.1:8080/login/oauth2/code/messaging-client-oidc")
-				.redirectUri("http://127.0.0.1:8080/authorized")
-				.postLogoutRedirectUri("http://127.0.0.1:8080/logged-out")
-				.scope(OidcScopes.OPENID)
-				.scope(OidcScopes.PROFILE)
-				.scope("message.read")
-				.scope("message.write")
-				.clientSettings(ClientSettings.builder().requireAuthorizationConsent(true).build())
-				.build();
-
-		RegisteredClient deviceClient = RegisteredClient.withId(UUID.randomUUID().toString())
-				.clientId("device-messaging-client")
-				.clientAuthenticationMethod(ClientAuthenticationMethod.NONE)
-				.authorizationGrantType(AuthorizationGrantType.DEVICE_CODE)
-				.authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
-				.scope("message.read")
-				.scope("message.write")
-				.build();
-
-		// Save registered client's in db as if in-memory
 		JdbcRegisteredClientRepository registeredClientRepository = new JdbcRegisteredClientRepository(jdbcTemplate);
-		registeredClientRepository.save(registeredClient);
-		registeredClientRepository.save(deviceClient);
+		Optional<RegisteredClient> messagingClient = Optional.ofNullable(registeredClientRepository.findByClientId("messaging-client"));
+		Optional<RegisteredClient> deviceMessagingClient = Optional.ofNullable(registeredClientRepository.findByClientId("device-messaging-client"));
 
+		if(messagingClient.isEmpty() && deviceMessagingClient.isEmpty()) {
+
+
+			RegisteredClient registeredClient = RegisteredClient.withId(UUID.randomUUID().toString())
+					.clientId("messaging-client")
+					.clientSecret("{noop}secret")
+					.clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
+					.authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
+					.authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
+					.authorizationGrantType(AuthorizationGrantType.CLIENT_CREDENTIALS)
+					.redirectUri("http://127.0.0.1:8080/login/oauth2/code/messaging-client-oidc")
+					.redirectUri("http://127.0.0.1:8080/authorized")
+					.postLogoutRedirectUri("http://127.0.0.1:8080/logged-out")
+					.scope(OidcScopes.OPENID)
+					.scope(OidcScopes.PROFILE)
+					.scope("message.read")
+					.scope("message.write")
+					.clientSettings(ClientSettings.builder().requireAuthorizationConsent(true).build())
+					.build();
+
+			RegisteredClient deviceClient = RegisteredClient.withId(UUID.randomUUID().toString())
+					.clientId("device-messaging-client")
+					.clientAuthenticationMethod(ClientAuthenticationMethod.NONE)
+					.authorizationGrantType(AuthorizationGrantType.DEVICE_CODE)
+					.authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
+					.scope("message.read")
+					.scope("message.write")
+					.build();
+
+
+			registeredClientRepository.save(registeredClient);
+			registeredClientRepository.save(deviceClient);
+
+			return registeredClientRepository;
+		}
 		return registeredClientRepository;
 	}
 	// @formatter:on
@@ -199,18 +186,18 @@ public class AuthorizationServerConfig {
 		return AuthorizationServerSettings.builder().build();
 	}
 
-	@Bean
-	public EmbeddedDatabase embeddedDatabase() {
-		// @formatter:off
-		return new EmbeddedDatabaseBuilder()
-				.generateUniqueName(true)
-				.setType(EmbeddedDatabaseType.H2)
-				.setScriptEncoding("UTF-8")
-				.addScript("org/springframework/security/oauth2/server/authorization/oauth2-authorization-schema.sql")
-				.addScript("org/springframework/security/oauth2/server/authorization/oauth2-authorization-consent-schema.sql")
-				.addScript("org/springframework/security/oauth2/server/authorization/client/oauth2-registered-client-schema.sql")
-				.build();
-		// @formatter:on
-	}
+//	@Bean
+//	public EmbeddedDatabase embeddedDatabase() {
+//		// @formatter:off
+//		return new EmbeddedDatabaseBuilder()
+//				.generateUniqueName(true)
+//				.setType(EmbeddedDatabaseType.H2)
+//				.setScriptEncoding("UTF-8")
+//				.addScript("org/springframework/security/oauth2/server/authorization/oauth2-authorization-schema.sql")
+//				.addScript("org/springframework/security/oauth2/server/authorization/oauth2-authorization-consent-schema.sql")
+//				.addScript("org/springframework/security/oauth2/server/authorization/client/oauth2-registered-client-schema.sql")
+//				.build();
+//		// @formatter:on
+//	}
 
 }
