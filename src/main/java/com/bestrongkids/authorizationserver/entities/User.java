@@ -17,7 +17,7 @@ import java.util.List;
 @AllArgsConstructor
 @Entity
 @Table(name = "users")
-public class User implements UserDetails {
+public class User  {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -47,28 +47,11 @@ public class User implements UserDetails {
 
     private boolean nonBlocked;
 
-    private boolean credentialsNonExpired;
-    private boolean isAccountNonExpired;
-    private boolean isAccountNonLocked;
-
     private boolean enabled;
 
     public User() {
 
     }
 
-    @Override
-    public String getUsername() {
-        return this.email;
-    }
 
-    @Override
-    public boolean isAccountNonExpired() {
-        return false;
-    }
-
-    @Override
-    public boolean isAccountNonLocked() {
-        return false;
-    }
 }
