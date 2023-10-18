@@ -16,7 +16,7 @@ jobs:
       - name: Configure AWS credentials from Test account
         uses: aws-actions/configure-aws-credentials@v2
         with:
-          role-to-assume: arn:aws:iam::830306683076:role/terraform_ops
+          role-to-assume: arn:aws:iam::902643419733:role/Gitaction_ECR_Upload_Role
           aws-region: ap-northeast-2
 
       - name: Set up JDK 17
