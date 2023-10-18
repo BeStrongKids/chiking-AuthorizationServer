@@ -11,6 +11,14 @@ java {
 	sourceCompatibility = '17'
 }
 
+bootJar {
+	enabled = false
+}
+
+jar {
+	enabled = true
+}
+
 repositories {
 	mavenCentral()
 }
@@ -30,8 +38,18 @@ dependencies {
 	implementation group: 'com.google.guava', name: 'guava', version: '32.0.1-jre'
 	implementation group: 'org.apache.commons', name: 'commons-lang3', version: '3.12.0'
 	implementation group: 'org.springframework.boot', name: 'spring-boot-starter-validation', version: '3.1.2'
-
 	runtimeOnly 'com.mysql:mysql-connector-j'
+
+	//for docker build
+	runtimeOnly "com.h2database:h2"
+	// test
+	implementation "org.webjars:webjars-locator-core"
+	implementation "org.webjars:bootstrap:5.2.3"
+	implementation "org.webjars:jquery:3.6.4"
+	implementation "org.springframework.boot:spring-boot-starter-thymeleaf"
+
+
+
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testImplementation 'org.springframework.security:spring-security-test'
 	testImplementation "net.sourceforge.htmlunit:htmlunit"

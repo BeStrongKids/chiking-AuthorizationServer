@@ -7,6 +7,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.data.annotation.CreatedDate;
+import org.springframework.security.core.userdetails.UserDetails;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -15,7 +16,8 @@ import java.util.List;
 @Builder
 @AllArgsConstructor
 @Entity
-public class User {
+@Table(name = "users")
+public class User implements UserDetails {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -33,7 +35,7 @@ public class User {
 
     private String algorithm;
 
-    @OneToMany(mappedBy = "user", fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "userId", fetch = FetchType.EAGER)
     private List<Authority> authorities;
 
     private LocalDateTime lastLoginAt;
@@ -46,10 +48,27 @@ public class User {
     private boolean nonBlocked;
 
     private boolean credentialsNonExpired;
+    private boolean isAccountNonExpired;
+    private boolean isAccountNonLocked;
 
     private boolean enabled;
 
     public User() {
 
+    }
+
+    @Override
+    public String getUsername() {
+        return this.email;
+    }
+
+    @Override
+    public boolean isAccountNonExpired() {
+        return false;
+    }
+
+    @Override
+    public boolean isAccountNonLocked() {
+        return false;
     }
 }

@@ -42,11 +42,6 @@ public class DefaultSecurityConfig {
 				formLogin
 					.loginPage("/login")
 			)
-			.oauth2Login(oauth2Login ->
-				oauth2Login
-					.loginPage("/login")
-					.successHandler(authenticationSuccessHandler())
-			)
 				.userDetailsService(jpaUserDetailsService)
 		;
 

@@ -36,6 +36,7 @@ import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
 import org.springframework.security.oauth2.core.oidc.OidcScopes;
@@ -61,6 +62,11 @@ import org.springframework.security.web.util.matcher.MediaTypeRequestMatcher;
 @Configuration(proxyBeanMethods = false)
 public class AuthorizationServerConfig {
 	private static final String CUSTOM_CONSENT_PAGE_URI = "/oauth2/consent";
+	private final PasswordEncoder passwordEncoder;
+
+	AuthorizationServerConfig(PasswordEncoder passwordEncoder){
+		this.passwordEncoder =	passwordEncoder;
+	}
 
 	@Bean
 	@Order(Ordered.HIGHEST_PRECEDENCE)
@@ -107,14 +113,13 @@ public class AuthorizationServerConfig {
 	public RegisteredClientRepository registeredClientRepository(JdbcTemplate jdbcTemplate) {
 		JdbcRegisteredClientRepository registeredClientRepository = new JdbcRegisteredClientRepository(jdbcTemplate);
 		Optional<RegisteredClient> messagingClient = Optional.ofNullable(registeredClientRepository.findByClientId("messaging-client"));
-		Optional<RegisteredClient> deviceMessagingClient = Optional.ofNullable(registeredClientRepository.findByClientId("device-messaging-client"));
 
-		if(messagingClient.isEmpty() && deviceMessagingClient.isEmpty()) {
+		if(messagingClient.isEmpty()) {
 
 
 			RegisteredClient registeredClient = RegisteredClient.withId(UUID.randomUUID().toString())
 					.clientId("messaging-client")
-					.clientSecret("{noop}secret")
+					.clientSecret(passwordEncoder.encode("{noop}secret"))
 					.clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
 					.authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
 					.authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
@@ -129,18 +134,9 @@ public class AuthorizationServerConfig {
 					.clientSettings(ClientSettings.builder().requireAuthorizationConsent(true).build())
 					.build();
 
-			RegisteredClient deviceClient = RegisteredClient.withId(UUID.randomUUID().toString())
-					.clientId("device-messaging-client")
-					.clientAuthenticationMethod(ClientAuthenticationMethod.NONE)
-					.authorizationGrantType(AuthorizationGrantType.DEVICE_CODE)
-					.authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
-					.scope("message.read")
-					.scope("message.write")
-					.build();
 
 
 			registeredClientRepository.save(registeredClient);
-			registeredClientRepository.save(deviceClient);
 
 			return registeredClientRepository;
 		}
