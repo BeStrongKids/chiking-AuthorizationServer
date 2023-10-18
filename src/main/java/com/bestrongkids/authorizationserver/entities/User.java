@@ -47,11 +47,12 @@ public class User  {
 
     private boolean nonBlocked;
 
+    private boolean credentialsNonExpired;
+
     private boolean enabled;
 
     public User() {
 
     }
-
 
 }
