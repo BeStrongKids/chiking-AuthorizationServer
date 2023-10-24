@@ -1,8 +1,10 @@
 package com.bestrongkids.authorizationserver.controller;
 
 import com.bestrongkids.authorizationserver.dto.UserDto;
+import com.bestrongkids.authorizationserver.entities.Authority;
 import com.bestrongkids.authorizationserver.entities.User;
 import com.bestrongkids.authorizationserver.repositories.UserRepository;
+import com.bestrongkids.authorizationserver.utils.exceptions.GeneralException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
@@ -16,6 +18,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -52,6 +55,7 @@ class UserTest {
     @Test
     public void givenUser_whenRequestingRegisterUser_thenReturnSuccessMessage() throws Exception{
         // Given
+
         UserDto userDto = new UserDto("test1", "test1@test.com", "12345");
         String body = mapper.writeValueAsString(userDto);
 
@@ -78,11 +82,12 @@ class UserTest {
 
 
         // 데이터베이스에서 사용자를 조회하여 검증
-        Optional<User> registeredUser = userRepository.findUserByEmail(userDto.getEmail());
-        assertTrue(registeredUser.isPresent());
-        assertEquals(userDto.getName(), registeredUser.get().getName());
+
+        var registeredUser = GeneralException.throwIfNotFound(userRepository.findUserByEmail(userDto.getEmail()),userDto.getEmail() + "는 존재 하지않는 유저 입니다.");
+//        assertTrue(registeredUser.isPresent());
+        assertEquals(userDto.getName(), registeredUser.getName());
         // 암호화된 패스워드가 데이터베이스에 저장되었는지 확인
-        assertNotEquals(userDto.getNewPassword(), registeredUser.get().getPassword());
+        assertNotEquals(userDto.getNewPassword(), registeredUser.getPassword());
     }
 
 //    @DisplayName("2. 유저 Update 테스트")
@@ -126,8 +131,8 @@ class UserTest {
     @Test
     public void testFormLogin() throws Exception {
         mvc.perform(formLogin().user("test1@test.com").password("12345"))
-                .andExpect(status().isFound());  // 로그인 성공 시 redirect되므로 302 상태 코드를 기대합니다.
-//                .andExpect(authenticated());
+                .andExpect(status().isFound())  // 로그인 성공 시 redirect되므로 302 상태 코드를 기대합니다.
+                .andExpect(authenticated());
     }
 
     @Test
