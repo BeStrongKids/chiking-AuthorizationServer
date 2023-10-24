@@ -5,28 +5,20 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 
-
 @Entity
 @Getter
 @AllArgsConstructor
 @Builder
-@Table(name = "authority")
-public class Authority {
+@Table(name = "authorities")
+public class Authorities {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name="authority_id")
+    @Column(name = "authorities_id")
     private Integer id;
 
-    @JoinColumn(name="authorities_id")
-    @ManyToOne
-    private Authorities authoritiesId;
+    private String name;
 
-    @JoinColumn(name = "users_id")
-    @ManyToOne
-    private User userId;
+    public Authorities(){}
 
-
-    public Authority() {
-
-    }
 }
