@@ -8,14 +8,19 @@ import com.bestrongkids.authorizationserver.repositories.AuthoritiesRepository;
 import com.bestrongkids.authorizationserver.repositories.AuthorityRepository;
 import com.bestrongkids.authorizationserver.repositories.UserRepository;
 import com.bestrongkids.authorizationserver.result.user.RegisterUserResult;
+import com.bestrongkids.authorizationserver.result.user.UpdateUserResult;
 import com.bestrongkids.authorizationserver.utils.exceptions.GeneralException;
 import jakarta.transaction.Transactional;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import javax.security.auth.login.CredentialException;
 import java.util.function.Supplier;
 
 import static com.bestrongkids.authorizationserver.utils.ApiUtils.ApiResult;
@@ -58,28 +63,22 @@ public class UserService {
     }
 
 
+    // TODO : 로그인된 멤버 또는 권한을 가진 사람에게만 허락되는 메소드 추가가 필요함.
     @Transactional
-    public String updateUser(@NonNull UserDto userDto) throws UsernameNotFoundException {
-        Supplier<UsernameNotFoundException> s = () -> new UsernameNotFoundException("User Not Found!");
-
-        User user = findUserByEmailOrThrow(userDto.getEmail(),s);
-        updateUserFields(user, userDto);
-
-        userRepository.save(user);
-
-
-
-        return "save";
-    }
-
-    private void updateUserFields(User user,UserDto userDto){
-        if(!userDto.getPassword().isEmpty()) {
-            user.setPassword(passwordEncoder.encode(userDto.getPassword()));
+    public ApiResult<UpdateUserResult> updateUser(@NonNull UserDto userDto) throws UsernameNotFoundException {
+        User user = GeneralException.throwIfNotFound(userRepository.findUserByEmail(userDto.getEmail()),userDto.getEmail() + "는 존재 하지않는 유저 입니다.");
+        String encodedUserPw = passwordEncoder.encode(userDto.getPassword());
+        if(!passwordEncoder.matches(userDto.getPassword(), encodedUserPw))
+        {
+            throw new BadCredentialsException("Email 또는 Password를 확인해주세요.");
         }
+        user.setPassword(passwordEncoder.encode(userDto.getPassword()));
+        User updatedUser =  userRepository.save(user);
+
+
+        return success(new UpdateUserResult(updatedUser.getName()));
 
     }
 
-    private User findUserByEmailOrThrow(String username, Supplier<UsernameNotFoundException> usernameNotFoundExceptionSupplier) {
-        return GeneralException.throwIfNotFound(userRepository.findUserByEmail(username),username + "는 존재 하지않는 유저 입니다.");
-    }
+
 }
