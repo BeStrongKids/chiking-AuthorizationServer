@@ -1,8 +1,11 @@
 package com.bestrongkids.authorizationserver.model;
 
 import com.bestrongkids.authorizationserver.entities.User;
+import com.bestrongkids.authorizationserver.repositories.UserRepository;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -10,17 +13,20 @@ import org.springframework.security.core.userdetails.UserDetails;
 import java.util.Collection;
 import java.util.stream.Collectors;
 
-@RequiredArgsConstructor
+
 @Getter
 public class SecurityUserDetails implements UserDetails {
 
     private final User user;
+    private UserRepository userRepository;
+
+    public SecurityUserDetails(User user){
+        this.user = user;
+    }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return user.getAuthorities().stream()
-                .map(a -> new SimpleGrantedAuthority(a.getName()))
-                .collect(Collectors.toList());
+        return userRepository.findAuthorityNamesByEmail(user.getEmail()).stream().map(SimpleGrantedAuthority::new).collect(Collectors.toList());
     }
 
     @Override
