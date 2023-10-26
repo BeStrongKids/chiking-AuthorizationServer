@@ -1,9 +1,13 @@
 name: Docker Build and Push to ECR
-#
+
 on:
   push:
     branches:
       - main
+permissions:
+  contents: read
+  id-token: write
+  pull-requests: write
 
 jobs:
   build-and-push:
@@ -11,7 +15,13 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v2  
+
+      - name: Configure AWS credentials from Test account
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          role-to-assume: arn:aws:iam::902643419733:role/Gitaction_ECR_Upload_Role
+          aws-region: ap-northeast-2
 
       - name: Set up JDK 17
         uses: actions/setup-java@v2
@@ -25,12 +35,12 @@ jobs:
       - name : Build with Gradle
         run : ./gradlew build
 
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v2
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_KEY }}
-          aws-region: ap-northeast-2
+      #- name: Configure AWS credentials
+        #uses: aws-actions/configure-aws-credentials@v2
+        #with:
+          #aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY }}
+          #aws-secret-access-key: ${{ secrets.AWS_SECRET_KEY }}
+          #aws-region: ap-northeast-2
 
       - name : Login to Amazon ECR
         id : login-ecr
