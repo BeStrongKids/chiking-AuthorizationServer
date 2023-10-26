@@ -19,10 +19,6 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
-/**
- * @author Steve Riesenberg
- * @since 1.1
- */
 @Controller
 public class DeviceController {
 

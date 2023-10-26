@@ -24,10 +24,6 @@ import org.springframework.ui.Model;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.RequestMapping;
 
-/**
- * @author Steve Riesenberg
- * @since 1.1
- */
 @Controller
 public class DefaultErrorController implements ErrorController {
 
