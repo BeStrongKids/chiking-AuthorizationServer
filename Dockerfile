@@ -34,7 +34,7 @@ RUN mkdir -p target/dependency
 WORKDIR /workdir/server/target/dependency
 
 COPY --from=builder /workdir/server/build/libs/*.jar .
-RUN jar -xf ./*.jar
+RUN jar -xvf ./*.jar
 
 # Production Image
 FROM eclipse-temurin:17-jre-focal
@@ -42,5 +42,7 @@ FROM eclipse-temurin:17-jre-focal
 EXPOSE 10020
 
 ARG DEPENDENCY=/workdir/server/target/dependency
-
-ENTRYPOINT ["java","-cp","app:app/lib/*","com.bestrongkids.authorizationserver"]
+COPY --from=prepare-production ${DEPENDENCY}/BOOT-INF/lib /app/lib
+COPY --from=prepare-production ${DEPENDENCY}/META-INF /app/META-INF
+COPY --from=prepare-production ${DEPENDENCY}/BOOT-INF/classes /app
+ENTRYPOINT ["java","-cp","app:app/lib/*","com.bestrongkids.authorizationserver.AuthorizationserverApplication"]

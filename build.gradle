@@ -12,11 +12,13 @@ java {
 }
 
 bootJar {
-	enabled = false
+	enabled = true
+	mainClass.set('com.bestrongkids.authorizationserver.AuthorizationserverApplication')
+
 }
 
 jar {
-	enabled = true
+	enabled = false
 }
 
 repositories {
