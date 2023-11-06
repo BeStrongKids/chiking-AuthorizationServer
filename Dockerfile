@@ -13,7 +13,7 @@ RUN ./gradlew clean build
 
 # Copy the rest and do a full build
 COPY src /workdir/server/src
-RUN ./gradlew build
+RUN ./gradlew build && ls /workdir/server/build/libs/
 
 # Dev Environment Stage
 FROM builder AS dev-envs
@@ -32,7 +32,9 @@ FROM builder as prepare-production
 
 RUN mkdir -p target/dependency
 WORKDIR /workdir/server/target/dependency
-RUN jar -xf ../*.jar
+
+COPY --from=builder /workdir/server/build/libs/*.jar .
+RUN jar -xf ./*.jar
 
 # Production Image
 FROM eclipse-temurin:17-jre-focal
@@ -40,7 +42,5 @@ FROM eclipse-temurin:17-jre-focal
 EXPOSE 10020
 
 ARG DEPENDENCY=/workdir/server/target/dependency
-COPY --from=prepare-production ${DEPENDENCY}/BOOT-INF/lib /app/lib
-COPY --from=prepare-production ${DEPENDENCY}/META-INF /app/META-INF
-COPY --from=prepare-production ${DEPENDENCY}/BOOT-INF/classes /app
-ENTRYPOINT ["java","-cp","app:app/lib/*","com.company.project.Application"]
+
+ENTRYPOINT ["java","-cp","app:app/lib/*","com.bestrongkids.authorizationserver"]
